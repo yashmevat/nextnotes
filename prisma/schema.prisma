@@ -12,6 +12,7 @@ model AppUser {
   name      String
   email     String    @unique
   password  String
+  imageUrl  String?
   notes     AppNote[]
   createdAt DateTime  @default(now())
 }

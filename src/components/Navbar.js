@@ -4,21 +4,43 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { jwtDecode } from "jwt-decode";
 
 export default function Navbar() {
   const router = useRouter();
   const [userLoggedIn, setUserLoggedIn] = useState(false);
+  const [imgUrl, setImgUrl] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const getImgUrl = async (email) => {
+    try {
+      const res = await fetch("/api/auth/getuser", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setImgUrl(data.imageUrl);
+      }
+    } catch (error) {
+      toast.error("Unable to fetch image");
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    if (token) {
+      const decoded = jwtDecode(token); // ✅ Safe decode without secret
+      getImgUrl(decoded?.email);
+    }
     setUserLoggedIn(!!token);
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     setUserLoggedIn(false);
-    toast.success("Logged Out Success")
+    toast.success("Logged Out Successfully");
     router.push("/login");
   };
 
@@ -32,7 +54,10 @@ export default function Navbar() {
       <div className="hidden md:flex gap-4 items-center">
         {userLoggedIn ? (
           <>
-            <Link href="/notes/add" className="bg-green-500 px-3 py-1 rounded hover:bg-green-600">
+            <Link
+              href="/notes/add"
+              className="bg-green-500 px-3 py-1 rounded hover:bg-green-600"
+            >
               Add Note
             </Link>
             <button
@@ -41,13 +66,28 @@ export default function Navbar() {
             >
               Logout
             </button>
+
+            {/* Profile Image with Circle and Clickable */}
+            <Link href="/profile">
+              <img
+                src={imgUrl || "/default-avatar.png"} // fallback image
+                alt="Profile"
+                className="w-10 h-10 rounded-full object-cover border-2 border-white cursor-pointer hover:scale-105 transition"
+              />
+            </Link>
           </>
         ) : (
           <>
-            <Link href="/login" className="bg-blue-500 px-3 py-1 rounded hover:bg-blue-600">
+            <Link
+              href="/login"
+              className="bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
+            >
               Login
             </Link>
-            <Link href="/register" className="bg-gray-700 px-3 py-1 rounded hover:bg-gray-600">
+            <Link
+              href="/register"
+              className="bg-gray-700 px-3 py-1 rounded hover:bg-gray-600"
+            >
               Signup
             </Link>
           </>
@@ -65,9 +105,19 @@ export default function Navbar() {
             stroke="currentColor"
           >
             {menuOpen ? (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
             )}
           </svg>
         </button>
@@ -90,6 +140,14 @@ export default function Navbar() {
               >
                 Logout
               </button>
+              <Link href="/profile" className="flex items-center gap-2">
+                <img
+                  src={imgUrl || "/default-avatar.png"}
+                  alt="Profile"
+                  className="w-10 h-10 rounded-full object-cover border-2 border-white"
+                />
+                <span>View Profile</span>
+              </Link>
             </>
           ) : (
             <>
