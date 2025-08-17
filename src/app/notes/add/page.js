@@ -24,8 +24,8 @@ export default function AddNote() {
     const data =  await res.json()
     setLoading(false)
     if(data.success){
-      toast.success(data.message||"Note Added Success")
       router.push("/dashboard");
+      toast.success(data.message||"Note Added Success")
     }
     else{
       toast.error(data.message||"unable to add note at this moment")

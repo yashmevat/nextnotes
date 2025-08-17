@@ -8,36 +8,61 @@ import Loader from "../Loader";
 export default function Dashboard() {
   const [notes, setNotes] = useState([]);
   const router = useRouter();
-  const[loading,setLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const fetchNotes = async () => {
     try {
-        const token = localStorage.getItem("token");
-    if (!token) return router.push("/login");
-    setLoading(true)
-    const res = await fetch("/api/notes", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await res.json();
-    setNotes(data.notes || []);
-    setLoading(false)
+      const token = localStorage.getItem("token");
+      if (!token) return router.push("/login");
+      setLoading(true)
+      const res = await fetch("/api/notes", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setNotes(data.notes || []);
+      setLoading(false)
     } catch (error) {
-        setLoading(false)
-        toast.error(data.message||"internal error")
+      setLoading(false)
+      toast.error(data.message || "internal error")
     }
-    
+
   };
+  const handleDelete = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return router.push("/login");
+      setLoading(true)
+      const res = await fetch(`/api/notes/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setLoading(false)
+      if (data.success) {
+        toast.success(data.message || "Deleted Successfully")
+        fetchNotes()
+      }
+      else {
+        toast.error(data.message || "unable to delete")
+      }
+    } catch (error) {
+      setLoading(false)
+      toast.error("internal error")
+    }
+
+
+  }
 
   useEffect(() => {
     fetchNotes();
   }, []);
 
-  if(loading){
-    return <Loader/>
+  if (loading) {
+    return <Loader />
   }
   return (
-    
-            <div className="min-h-screen bg-gray-100 text-black">
+
+    <div className="min-h-screen bg-gray-100 text-black">
       <Navbar />
       {loading && <Loader />}
       <div className="p-4 md:p-8 max-w-6xl mx-auto">
